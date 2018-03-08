@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.activity_main.input_text
 class MainActivity : AppCompatActivity() {
 
     private lateinit var editText: EditText
-    private var storedNumber = 0
+    private var storedNumber = 5
 
     companion object {
         private const val TAG = "MainActivity"
@@ -22,12 +22,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_main)
 
         editText = input_text
+
+        // Setup Display
+        if (savedInstanceState == null) {
+            // Doesn't really matter if we have this following line in null check or not.
+            // It will be overwritten by EditText.onRestoreInstanceState() from AppCompatActivity.onRestoreInstanceState() anyway.
+            // I'll just have it in null check to remove one extra step during restore.
+            editText.setText(storedNumber.toString())
+
+            // To avoid multiple fragments added.
+            supportFragmentManager.beginTransaction().add(R.id.fragment_container, MainFragment()).commit()
+        }
+
     }
 
     // Called after onPause() and before onStop()
+    // Always called after onPause() because it might be killed by Android, except back press.
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
@@ -36,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Called after onStart() and before onPostCreate() and before onResume()
+    // Called only if the activity is actually killed and restored
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         Log.d(TAG, "onRestoreInstanceState")
@@ -52,6 +67,13 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, storedNumber.toString(), Toast.LENGTH_SHORT).show()
     }
 
+    fun addFragment(v: View) {
+        supportFragmentManager.beginTransaction().add(R.id.fragment_container, MainFragment()).addToBackStack(null).commit()
+    }
+
+    fun replaceFragment(v: View) {
+        supportFragmentManager.beginTransaction().replace(R.id.fragment_container, MainFragment()).addToBackStack(null).commit()
+    }
     /* Just for logs */
 
     override fun onStart() {
